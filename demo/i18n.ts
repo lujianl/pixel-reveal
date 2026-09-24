@@ -58,7 +58,7 @@ const en: Messages = {
 };
 
 const zh: Messages = {
-  lede: '拖入一张照片，选一种揭示动画，导出一张能在手机相册里播放的实况照片。全部在本机完成。',
+  lede: '拖入一张照片，选一种揭示动画，导出一张能在手机相册里播放的实况照片。',
   dropLabel: '选择照片',
   dropHint: '或把图片拖到这里 · JPG、PNG、WebP',
   change: '换一张图',
@@ -83,7 +83,7 @@ const zh: Messages = {
   noteOplus: '会把一台真实 OPPO 设备的指纹写进文件。仅在默认方案被某个相册拒绝时才使用。',
   noteNone: '仍会追加 MP4，但不写容器元数据，多数相册只会当作静态图显示。',
   appName: '元数据里的应用名',
-  privacy: '不上传、不统计、零运行时依赖',
+  privacy: '零运行时依赖',
   license: 'MIT 许可',
   decoding: '正在解码…',
   encoding: '正在编码第 {frame} / {total} 帧',
