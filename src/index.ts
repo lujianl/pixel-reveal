@@ -9,11 +9,11 @@
  * dependencies.
  */
 
-import { bitrateFor, defaults, progressForFrame, resolveJob } from './config.js';
+import { bitrateFor, defaults, fitEvenDimensions, progressForFrame, resolveJob } from './config.js';
 import { registerBuiltinEffects } from './effects/index.js';
 import { PixelRevealError } from './errors.js';
 import { clamp01 } from './easing.js';
-import { createFrame } from './frame.js';
+import { createFrame, defaultBlockSize } from './frame.js';
 import { encodeVideo, isVideoEncodingSupported } from './pipeline/encoder.js';
 import { assembleMotionPhoto, inspectMotionPhoto } from './pipeline/motion-photo.js';
 import { createMp4Muxer } from './pipeline/muxer.js';
@@ -44,6 +44,14 @@ export interface PreviewOptions {
   blockSize?: number;
   seed?: number;
   codec?: ImageCodec;
+  /**
+   * Longest side the eventual export will use (its `maxDimension`). Combined
+   * with `sourceSize`, the preview reproduces the export's block count and its
+   * blur, so what you see is what the export produces.
+   */
+  outputMaxDimension?: number;
+  /** Natural pixel size of the source; avoids a second decode to work it out. */
+  sourceSize?: { width: number; height: number };
 }
 
 export interface PreviewSession {
@@ -56,6 +64,8 @@ export interface PreviewSession {
   readonly duration: number;
   readonly fps: number;
   readonly effectName: string;
+  /** This frame's size relative to the export's (`1` when no export size was given). */
+  readonly renderScale: number;
   /**
    * Render one frame. `progress` is `0..1` and easing is applied for you.
    * Block-based effects accumulate, so render in ascending order — call
@@ -71,11 +81,39 @@ export async function createPreview(options: PreviewOptions): Promise<PreviewSes
   const codec = options.codec ?? createBrowserCodec();
   const maxDimension = options.maxDimension ?? defaults.maxDimension;
   const sharp = await codec.decode(options.source, { maxDimension });
-  const job = resolveJob(options, sharp.width, sharp.height);
+
+  // Mirror the export's geometry when the caller says what the export will be.
+  // The grid density and any size-dependent effect decision (Melt's blur) then
+  // match the export instead of being derived from this smaller frame — without
+  // this, a 720px preview shows blur that a 2560px export does not have.
+  let blockSize = options.blockSize;
+  let outputBlockSize: number | undefined;
+  let renderScale = 1;
+  if (options.outputMaxDimension && options.sourceSize) {
+    const exportTarget = fitEvenDimensions(
+      options.sourceSize.width,
+      options.sourceSize.height,
+      options.outputMaxDimension,
+    );
+    const exportBlock = defaultBlockSize(exportTarget.width, exportTarget.height);
+    const exportShort = Math.min(exportTarget.width, exportTarget.height);
+    const previewShort = Math.min(sharp.width, sharp.height);
+    if (exportShort > 0) renderScale = Math.min(1, previewShort / exportShort);
+    outputBlockSize = exportBlock;
+    if (blockSize === undefined) blockSize = Math.max(1, Math.round(exportBlock * renderScale));
+  }
+
+  const job = resolveJob(
+    { ...options, ...(blockSize === undefined ? {} : { blockSize }) },
+    sharp.width,
+    sharp.height,
+  );
   const context = createEffectContext({
     sharp,
     blockSize: job.blockSize,
     seed: job.seed,
+    renderScale,
+    ...(outputBlockSize === undefined ? {} : { outputBlockSize }),
   });
 
   const buildRenderer = () => {
@@ -97,6 +135,7 @@ export async function createPreview(options: PreviewOptions): Promise<PreviewSes
     duration: job.duration,
     fps: job.fps,
     effectName: job.effect.name,
+    renderScale,
     render(progress: number): FrameBuffer {
       const eased = job.easing(clamp01(progress));
       if (eased < lastProgress) renderer = buildRenderer();

@@ -52,12 +52,23 @@ export const square = defineEffect({
       const rows = Math.ceil(context.height / blockSize);
       const grid = resampleArea(context.sharp, cols, rows);
 
-      // Blur radius expressed in grid pixels. Dividing by the *current* block
-      // size keeps it near `blurPixels / blockSize` for most of the animation,
-      // and tapers to zero as the blocks approach single pixels — matching the
-      // reference, where the blur also reaches zero at progress 1.
-      const gridRadius = (blurPixels * (1 - progress)) / blockSize;
-      const softened = gridRadius >= 0.5 ? boxBlur(grid, Math.round(gridRadius), 2) : grid;
+      // Decide the radius in the *export's* block units, then apply that many
+      // grid pixels here.
+      //
+      // The reference blurs by `blurPixels * (1 - t)` output pixels and pixelates
+      // with `outputBlockSize * (1 - t)` blocks, so the blur measured in blocks
+      // is `blurPixels / outputBlockSize` — constant, because both shrink
+      // together. Evaluating the *rounded* radius in output space and reusing it
+      // on this grid is what makes a 720px preview agree with a 2560px export: a
+      // 20px radius is sub-block at photo sizes, so it must vanish in the preview
+      // too. When this frame *is* the output (preview of nothing), the divisor is
+      // `blockSize * (1 - t)` and nothing changed.
+      const outputBlockNow = Math.max(
+        1,
+        Math.round((context.outputBlockSize || context.blockSize) * (1 - progress)),
+      );
+      const radius = Math.round((blurPixels * (1 - progress)) / outputBlockNow);
+      const softened = radius >= 1 ? boxBlur(grid, radius, 2) : grid;
 
       if (softened.width !== context.width || softened.height !== context.height) {
         upscaleNearestInto(frame, softened);

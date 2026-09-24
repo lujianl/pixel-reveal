@@ -72,6 +72,7 @@ const effects: EffectDefinition[] = listEffects();
 let selectedEffect = effects[0]!;
 
 let source: Blob | null = null;
+let sourceSize: { width: number; height: number } | null = null;
 let session: PreviewSession | null = null;
 let rebuildToken = 0;
 let animationFrame: number | null = null;
@@ -192,9 +193,13 @@ async function rebuildPreview(): Promise<void> {
       duration: options.duration,
       fps: options.fps,
       seed: options.seed,
-      // The preview always decodes small so scrubbing stays responsive; the
-      // export re-decodes at the requested size.
+      // The preview decodes small so scrubbing stays responsive; the export
+      // re-decodes at the requested size. Passing the export's target size (plus
+      // the source's natural size) lets the preview reproduce the export's block
+      // count and its blur instead of showing a coarser, blurrier result.
       maxDimension: PREVIEW_MAX_DIMENSION,
+      outputMaxDimension: Number(maxDimensionInput.value) || undefined,
+      ...(sourceSize ? { sourceSize } : {}),
       ...(options.blockSize ? { blockSize: options.blockSize } : {}),
     });
     if (token !== rebuildToken) return;
@@ -215,9 +220,23 @@ async function rebuildPreview(): Promise<void> {
   }
 }
 
-function loadFile(file: File): void {
+/** Natural pixel size of a source, used to mirror the export's geometry. */
+async function measureSource(file: Blob): Promise<{ width: number; height: number } | null> {
+  if (typeof createImageBitmap !== 'function') return null;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const size = { width: bitmap.width, height: bitmap.height };
+    bitmap.close();
+    return size;
+  } catch {
+    return null;
+  }
+}
+
+async function loadFile(file: File): Promise<void> {
   if (!file.type.startsWith('image/')) return;
   source = file;
+  sourceSize = await measureSource(file);
   drop.hidden = true;
   workbench.hidden = false;
   resultBox.hidden = true;

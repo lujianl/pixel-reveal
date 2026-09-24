@@ -312,6 +312,62 @@ describe('Melt blur curve', () => {
     ).data;
     expect(sameBytes(frame.data, bare)).toBe(true);
   });
+
+  it('agrees with the export about whether to blur at all', () => {
+    // A preview renders smaller than the export. Everything size dependent has
+    // to be decided against the export's geometry, or the preview shows blur the
+    // export will not have (and vice versa).
+    const pixelateAt = (block: number): Uint8ClampedArray =>
+      upscaleNearest(
+        resampleArea(sharp, Math.ceil(width / block), Math.ceil(height / block)),
+        width,
+        height,
+      ).data;
+
+    const renderPreviewOf = (exportBlock: number, previewBlock: number): Uint8ClampedArray => {
+      const context = createEffectContext({
+        sharp,
+        blockSize: previewBlock,
+        seed: 1,
+        outputBlockSize: exportBlock,
+        renderScale: previewBlock / exportBlock,
+      });
+      const frame = createFrame(width, height);
+      melt.create(context, {})(0, frame);
+      return frame.data.slice();
+    };
+
+    // The radius is decided in the export's units, so a preview and the export
+    // must agree at every progress value, not just on the first frame.
+    for (const progress of [0, 0.25, 0.5]) {
+      const exportCtx = createEffectContext({ sharp, blockSize: 80, seed: 1 });
+      const previewCtx = createEffectContext({
+        sharp,
+        blockSize: 23,
+        seed: 1,
+        outputBlockSize: 80,
+        renderScale: 23 / 80,
+      });
+      const big = createFrame(width, height);
+      const small = createFrame(width, height);
+      melt.create(exportCtx, {})(progress, big);
+      melt.create(previewCtx, {})(progress, small);
+      // 20px over an 80px block is sub-block, so neither render blurs.
+      expect(
+        sameBytes(
+          big.data,
+          pixelateAt(80 * (1 - progress) < 1 ? 1 : Math.round(80 * (1 - progress))),
+        ),
+        `export at ${progress}`,
+      ).toBe(true);
+    }
+
+    // 20px over a 40px block is a whole block: both sides blur.
+    const exportFrame = createFrame(width, height);
+    melt.create(createEffectContext({ sharp, blockSize: 40, seed: 1 }), {})(0, exportFrame);
+    expect(sameBytes(exportFrame.data, pixelateAt(40))).toBe(false);
+    expect(sameBytes(renderPreviewOf(40, 23), pixelateAt(23))).toBe(false);
+  });
 });
 
 describe('easing', () => {

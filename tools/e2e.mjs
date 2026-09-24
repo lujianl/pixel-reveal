@@ -74,12 +74,27 @@ function check(name, ok, detail = '') {
 
 // ------------------------------------------------------------------ page script
 
+// NOTE: this is a String.raw template literal. Use '+' for concatenation inside
+// it — a backtick or a ${...} sequence here terminates the outer literal.
 const PAGE_SCRIPT = String.raw`(async () => {
   const out = {};
   const $ = (id) => document.getElementById(id);
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+  // Wait for the app to boot. If it never does, say so plainly — a bare
+  // TypeError on a missing element is indistinguishable from a server that
+  // simply is not running yet.
   for (let i = 0; i < 100 && !document.querySelector('.chip'); i++) await sleep(100);
+  if (!document.querySelector('.chip')) {
+    throw new Error(
+      'the demo never rendered an effect chip - is the page reachable? ' +
+        '(readyState=' +
+        document.readyState +
+        ', title=' +
+        document.title +
+        ')',
+    );
+  }
   const chips = [...document.querySelectorAll('.chip')];
   out.chipCount = chips.length;
   out.chipLabels = chips.map((c) => c.textContent);

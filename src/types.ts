@@ -35,6 +35,21 @@ export interface EffectContext {
   readonly height: number;
   /** Side length of one pixel block, in output pixels. */
   readonly blockSize: number;
+  /**
+   * Block size the *final output* will use.
+   *
+   * Equal to `blockSize` when rendering the output itself. A preview renders at
+   * a smaller size, so size-dependent decisions (such as how much blur a 20px
+   * radius is worth) must be made against the output's block size — otherwise
+   * the preview shows blur the export will not have.
+   */
+  readonly outputBlockSize: number;
+  /**
+   * Ratio of this frame's size to the intended output size (`1` when rendering
+   * the output). Effects that use absolute pixel measurements should multiply
+   * them by this.
+   */
+  readonly renderScale: number;
   /** Block grid dimensions. `cols * rows` is the number of blocks. */
   readonly cols: number;
   readonly rows: number;
