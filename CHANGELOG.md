@@ -4,6 +4,8 @@ All notable changes to this project are documented here. This project follows [S
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-24
+
 ### Added
 
 - `createPreview()` — decode once, then render frames on demand for a live preview or scrubber, without encoding.

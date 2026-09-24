@@ -45,17 +45,26 @@ A Motion Photo is a JPEG with an MP4 appended, plus metadata telling the gallery
 
 ## Install
 
+Not published to npm yet, so install straight from the repository — npm builds the library as part of the install:
+
 ```bash
-npm install pixel-reveal
+npm install github:lujianl/pixel-reveal
 ```
 
-Or drop the standalone build into a page — it exposes a global `PixelReveal`:
+Or take the prebuilt bundle from the [latest release](https://github.com/lujianl/pixel-reveal/releases/latest) and drop it into a page; it exposes a global `PixelReveal`:
 
 ```html
-<script src="dist/pixel-reveal.iife.js"></script>
+<script src="pixel-reveal.iife.js"></script>
 <script>
   const { createMotionPhoto } = PixelReveal;
 </script>
+```
+
+Or clone and build from source:
+
+```bash
+git clone https://github.com/lujianl/pixel-reveal
+cd pixel-reveal && npm install && npm run build
 ```
 
 ## Usage

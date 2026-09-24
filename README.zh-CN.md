@@ -44,17 +44,26 @@ download(blob, 'motion-photo.jpg');
 
 ## 安装
 
+尚未发布到 npm，请直接从仓库安装（安装过程中 npm 会自动构建）：
+
 ```bash
-npm install pixel-reveal
+npm install github:lujianl/pixel-reveal
 ```
 
-或者直接把独立构建丢进页面，它会暴露全局 `PixelReveal`：
+或者从 [最新 Release](https://github.com/lujianl/pixel-reveal/releases/latest) 下载预构建包，直接丢进页面，它会暴露全局 `PixelReveal`：
 
 ```html
-<script src="dist/pixel-reveal.iife.js"></script>
+<script src="pixel-reveal.iife.js"></script>
 <script>
   const { createMotionPhoto } = PixelReveal;
 </script>
+```
+
+也可以克隆后自行构建：
+
+```bash
+git clone https://github.com/lujianl/pixel-reveal
+cd pixel-reveal && npm install && npm run build
 ```
 
 ## 用法
