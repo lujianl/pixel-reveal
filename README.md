@@ -1,6 +1,6 @@
 # pixel-reveal
 
-Turn a still photo into a **Motion Photo** (Live Photo) with a pixel-reveal animation — entirely in the browser. No upload, no backend, no runtime dependencies.
+Turn a still photo into a **Motion Photo** (Live Photo) with a pixel-reveal animation — entirely in the browser, with no backend and no runtime dependencies.
 
 [![CI](https://github.com/lujianl/pixel-reveal/actions/workflows/ci.yml/badge.svg)](https://github.com/lujianl/pixel-reveal/actions/workflows/ci.yml)
 [![Browser smoke test](https://github.com/lujianl/pixel-reveal/actions/workflows/e2e.yml/badge.svg)](https://github.com/lujianl/pixel-reveal/actions/workflows/e2e.yml)
@@ -26,7 +26,6 @@ download(blob, 'motion-photo.jpg');
 
 A Motion Photo is a JPEG with an MP4 appended, plus metadata telling the gallery "there is a video in here". Producing one needs four things: frame rendering, H.264 encoding, MP4 muxing, and container assembly. This library does all four locally.
 
-- **Private by construction** — the photo never leaves the device. Nothing to upload, no analytics.
 - **Zero runtime dependencies** — the MP4 muxer (mp4-muxer 5.2.2) is vendored with its licence; the bundle is ~22 KB gzipped.
 - **Customisable to the core** — an effect is a ~10 line function, not a plugin registration dance.
 - **Testable** — the render path is pure pixel maths with no canvas, so it runs in Node and is unit tested.

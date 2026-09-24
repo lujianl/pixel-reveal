@@ -2,7 +2,7 @@
  * Public type surface for pixel-reveal.
  *
  * Everything a consumer can customise is described here. The library has no
- * runtime dependencies and never touches the network.
+ * runtime dependencies.
  */
 
 /** A raw RGBA pixel buffer, row-major, 4 bytes per pixel. */

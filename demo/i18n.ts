@@ -9,7 +9,7 @@ export type Locale = (typeof LOCALES)[number];
 type Messages = Record<string, string>;
 
 const en: Messages = {
-  lede: 'Drop in a photo, pick a reveal, export a Motion Photo that plays in your camera roll. Everything happens on this device.',
+  lede: 'Drop in a photo, pick a reveal, export a Motion Photo that plays in your camera roll.',
   dropLabel: 'Choose a photo',
   dropHint: 'or drop one here · JPG, PNG, WebP',
   change: 'Change photo',
@@ -36,7 +36,7 @@ const en: Messages = {
   noteNone:
     'The MP4 is appended but no container metadata is written, so most galleries will show a still.',
   appName: 'App name in metadata',
-  privacy: 'No uploads, no analytics, no runtime dependencies',
+  privacy: 'No runtime dependencies',
   license: 'MIT licensed',
   decoding: 'Decoding…',
   encoding: 'Encoding frame {frame} / {total}',

@@ -5,8 +5,7 @@
  * - `createPreview()` — render frames for a live preview, no encoding, no video.
  * - `createMotionPhoto()` — full export: render + encode + assemble.
  *
- * Everything runs locally. There are no network calls and no runtime
- * dependencies.
+ * The pipeline is browser-native and has no runtime dependencies.
  */
 
 import { bitrateFor, defaults, fitEvenDimensions, progressForFrame, resolveJob } from './config.js';

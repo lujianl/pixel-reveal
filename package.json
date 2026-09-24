@@ -1,7 +1,7 @@
 {
   "name": "pixel-reveal",
   "version": "0.1.0",
-  "description": "Turn a still photo into a pixel-reveal Motion Photo (Live Photo) — customizable effects, 100% in the browser, no upload, no runtime dependencies.",
+  "description": "Turn a still photo into a pixel-reveal Motion Photo (Live Photo) — customizable effects, 100% in the browser, no runtime dependencies.",
   "keywords": [
     "motion-photo",
     "live-photo",
