@@ -46,11 +46,29 @@ describe('bitrateFor', () => {
     expect(bitrateFor(2560, 2560, 30)).toBe(defaults.maxBitrate);
   });
 
-  it('scales with resolution in between', () => {
-    const small = bitrateFor(1280, 720, 30);
+  it('scales with resolution between the floor and the ceiling', () => {
+    const medium = bitrateFor(1280, 720, 30);
     const large = bitrateFor(1920, 1080, 30);
-    expect(large).toBeGreaterThan(small);
-    expect(small).toBeGreaterThanOrEqual(defaults.minBitrate);
+    expect(medium).toBe(defaults.minBitrate); // ~6.6 Mbps of target, lifted to the floor
+    expect(large).toBeGreaterThan(medium); // ~14.9 Mbps, above the floor and below the ceiling
+    expect(large).toBeLessThanOrEqual(defaults.maxBitrate);
+  });
+
+  it('targets the measured quality sweet spot', () => {
+    // 0.24 bpp is where decoded quality stops improving measurably; see the note
+    // on `bitratePerPixel`.
+    expect(defaults.bitratePerPixel).toBeGreaterThanOrEqual(0.24);
+    const target = bitrateFor(1920, 1440, 30);
+    const bpp = target / (1920 * 1440 * 30);
+    expect(bpp).toBeGreaterThanOrEqual(0.2);
+    expect(bpp).toBeLessThanOrEqual(0.3);
+  });
+
+  it('keeps the floor high enough for small frames', () => {
+    // The original implementation encoded everything at 10 Mbps; the floor keeps
+    // downscaled photos from being clamped to a visibly worse bitrate.
+    expect(defaults.minBitrate).toBeGreaterThanOrEqual(10_000_000);
+    expect(bitrateFor(640, 360, 30)).toBe(defaults.minBitrate);
   });
 });
 

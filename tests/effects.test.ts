@@ -12,7 +12,7 @@ import {
   listEffects,
   normalizeWeights,
 } from '../src/effects/registry.js';
-import { cloneFrame, createFrame } from '../src/frame.js';
+import { cloneFrame, createFrame, resampleArea, upscaleNearest } from '../src/frame.js';
 import { createEffectContext } from '../src/pipeline/precompute.js';
 import type { EffectContext, FrameBuffer } from '../src/types.js';
 import { makeBlockDistinctImage, makeTestImage, sameBytes } from './helpers.js';
@@ -243,6 +243,74 @@ describe('built-in effects', () => {
     render(0, frame);
     expect(sameBytes(frame.data, context.base.data)).toBe(false);
     expect(frame.data.length).toBe(sharp.width * sharp.height * 4);
+  });
+});
+
+describe('Melt blur curve', () => {
+  // Regression guard. The first software implementation scaled the blur by
+  // (1 - progress) *and* measured it against the current block size, so the
+  // radius collapsed to zero for the last third of the animation (hard blocks)
+  // while starting far too large on big frames. The reference behaviour keeps
+  // the radius roughly constant in block units, because the blur and the block
+  // size shrink together.
+  const width = 120;
+  const height = 90;
+  const sharp = makeTestImage(width, height);
+  const blockSize = 12; // min(w,h)/20 for this fixture
+  const melt = builtinEffects.find((effect) => effect.name === 'square')!;
+
+  /** What a plain pixelation at the same block size looks like. */
+  const pixelateOnly = (blockSizeAtT: number): Uint8ClampedArray => {
+    const cols = Math.ceil(width / blockSizeAtT);
+    const rows = Math.ceil(height / blockSizeAtT);
+    return upscaleNearest(resampleArea(sharp, cols, rows), width, height).data;
+  };
+
+  const renderAt = (progress: number): Uint8ClampedArray => {
+    const context = createEffectContext({ sharp, blockSize, seed: 1 });
+    const frame = createFrame(width, height);
+    melt.create(context, {})(progress, frame);
+    return frame.data.slice();
+  };
+
+  it('softens the blocks early on', () => {
+    for (const progress of [0, 0.25, 0.5, 0.75]) {
+      const blockSizeAtT = Math.max(1, Math.round(blockSize * (1 - progress)));
+      const expected = pixelateOnly(blockSizeAtT);
+      const actual = renderAt(progress);
+      expect(
+        sameBytes(actual, expected),
+        `progress ${progress} should still be blurred, not bare blocks`,
+      ).toBe(false);
+    }
+  });
+
+  it('converges on the untouched photo', () => {
+    expect(sameBytes(renderAt(1), sharp.data)).toBe(true);
+    const almost = renderAt(0.999);
+    let differing = 0;
+    for (let i = 0; i < almost.length; i += 4) {
+      if (almost[i] !== sharp.data[i]) differing++;
+    }
+    // At the very end the blocks are a single pixel and the blur has tapered off.
+    expect(differing / (width * height)).toBeLessThan(0.02);
+  });
+
+  it('does not smear large frames', () => {
+    // The bug this guards: scaling the blur with the *block size* meant a
+    // 2560px photo (blockSize 128) got a 192px blur on its first frame. With the
+    // reference behaviour, a 20px blur is sub-block at that size, so the first
+    // frame is exactly the pixelated backdrop.
+    const bigBlock = 80;
+    const context = createEffectContext({ sharp, blockSize: bigBlock, seed: 1 });
+    const frame = createFrame(width, height);
+    melt.create(context, {})(0, frame);
+    const bare = upscaleNearest(
+      resampleArea(sharp, Math.ceil(width / bigBlock), Math.ceil(height / bigBlock)),
+      width,
+      height,
+    ).data;
+    expect(sameBytes(frame.data, bare)).toBe(true);
   });
 });
 

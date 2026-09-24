@@ -25,9 +25,27 @@ export const defaults: ResolvedDefaults = {
   duration: 2.5,
   fps: 30,
   maxDimension: 2560,
-  /** bits per pixel per second, before clamping */
-  bitratePerPixel: 0.12,
-  minBitrate: 6_000_000,
+  /**
+   * Bits per pixel per second before clamping.
+   *
+   * Measured against the software H.264 encoder at 1920x1440: 0.072 bpp decodes
+   * back with a mean error of 1.78/255 against the source, 0.121 bpp gives 1.47,
+   * 0.241 bpp gives 1.30, and 0.482 bpp only reaches 1.28. Quality therefore
+   * saturates around 0.24 bpp, which is the value used here. (At low resolutions
+   * the rate control saturates on its own — 480x360 produces byte-identical
+   * output at 6, 10 and 20 Mbps — so the floor only protects busy small frames.)
+   */
+  bitratePerPixel: 0.24,
+  /**
+   * Floor and ceiling for the encoder bitrate.
+   *
+   * The floor matches the original implementation's flat 10 Mbps. The ceiling is
+   * 20 Mbps: at 2560x1706 the rate target would be ~31 Mbps, but measured
+   * against the decoded output that only improves the mean error from 1.09 to
+   * ~1.05 while adding ~50% to the file size, so the cap buys file size rather
+   * than visible quality.
+   */
+  minBitrate: 10_000_000,
   maxBitrate: 20_000_000,
   cover: 'effect',
   seed: 1,
