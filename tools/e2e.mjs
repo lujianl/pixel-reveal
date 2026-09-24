@@ -220,6 +220,11 @@ const child = spawn(
   [
     '--headless=new',
     '--disable-gpu',
+    // Small /dev/shm and restricted unprivileged user namespaces are the norm on
+    // CI images (Ubuntu 24.04 restricts them via AppArmor), where Chrome refuses
+    // to start without these two. The sandbox stays on locally.
+    '--disable-dev-shm-usage',
+    ...(process.env.CI ? ['--no-sandbox'] : []),
     '--no-first-run',
     '--no-default-browser-check',
     '--mute-audio',
@@ -228,8 +233,15 @@ const child = spawn(
     `--user-data-dir=${profileDir}`,
     url,
   ],
-  { stdio: 'ignore' },
+  { stdio: ['ignore', 'ignore', 'pipe'] },
 );
+
+// Keep the browser's own diagnostics: without them a failure to start looks
+// identical to a page that never loaded.
+let browserStderr = '';
+child.stderr?.on('data', (chunk) => {
+  browserStderr = (browserStderr + String(chunk)).slice(-2000);
+});
 
 const cleanup = () => {
   try {
@@ -248,7 +260,7 @@ let ws;
 let failures = 0;
 try {
   let wsUrl = null;
-  for (let i = 0; i < 120; i++) {
+  for (let i = 0; i < 240; i++) {
     try {
       const list = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
       const page = list.find((t) => t.type === 'page' && t.webSocketDebuggerUrl);
@@ -261,7 +273,14 @@ try {
     }
     await sleep(250);
   }
-  if (!wsUrl) throw new Error('no DevTools target appeared — is the page reachable?');
+  if (!wsUrl) {
+    throw new Error(
+      'no DevTools target appeared after 60s — is the page reachable? ' +
+        (browserStderr.trim()
+          ? `\nbrowser stderr:\n${browserStderr.trim()}`
+          : '(no browser output)'),
+    );
+  }
 
   ws = new WebSocket(wsUrl);
   await new Promise((resolve, reject) => {
