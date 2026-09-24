@@ -1,0 +1,59 @@
+{
+  "name": "pixel-reveal",
+  "version": "0.1.0",
+  "description": "Turn a still photo into a pixel-reveal Motion Photo (Live Photo) — customizable effects, 100% in the browser, no upload, no runtime dependencies.",
+  "keywords": [
+    "motion-photo",
+    "live-photo",
+    "webcodecs",
+    "pixel-art",
+    "image-animation",
+    "h264",
+    "browser"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/pixel-reveal.cjs",
+  "module": "./dist/pixel-reveal.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/pixel-reveal.js",
+      "require": "./dist/pixel-reveal.cjs"
+    },
+    "./effects": {
+      "types": "./dist/types/effects/index.d.ts",
+      "import": "./dist/pixel-reveal.js",
+      "require": "./dist/pixel-reveal.cjs"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run build:lib && npm run build:demo",
+    "build:lib": "vite build && tsc -p tsconfig.build.json",
+    "build:demo": "vite build --config vite.demo.config.ts",
+    "preview": "vite preview --config vite.demo.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "node tools/e2e.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@vitest/coverage-v8": "^5.0.1",
+    "prettier": "^3.9.9",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
+  }
+}

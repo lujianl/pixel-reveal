@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-demo/
+coverage/
+package-lock.json
+
+# Vendored third-party build artefact — never reformat (see THIRD-PARTY.md).
+src/vendor/

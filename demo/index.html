@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>pixel-reveal</title>
+    <meta
+      name="description"
+      content="Turn a still photo into a pixel-reveal Motion Photo. Runs entirely in your browser."
+    />
+    <meta name="color-scheme" content="dark" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2308080a'/%3E%3Crect x='5' y='5' width='9' height='9' fill='%23e85d2a'/%3E%3Crect x='18' y='5' width='9' height='9' fill='%23e85d2a' opacity='.45'/%3E%3Crect x='5' y='18' width='9' height='9' fill='%23e85d2a' opacity='.45'/%3E%3Crect x='18' y='18' width='9' height='9' fill='%23e85d2a'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <main class="app">
+      <header class="head">
+        <h1>pixel<span>reveal</span></h1>
+        <div class="head-actions">
+          <button id="locale" class="ghost" type="button" aria-label="Switch language">中文</button>
+        </div>
+      </header>
+
+      <p class="lede" data-i18n="lede"></p>
+
+      <!-- Step 1: source -->
+      <section id="drop" class="drop" tabindex="0" role="button" aria-labelledby="drop-label">
+        <input id="file" type="file" accept="image/*" hidden />
+        <div class="drop-inner">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="drop-icon">
+            <path
+              d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <strong id="drop-label" data-i18n="dropLabel"></strong>
+          <span class="muted" data-i18n="dropHint"></span>
+        </div>
+      </section>
+
+      <!-- Step 2: workbench -->
+      <section id="workbench" class="workbench" hidden>
+        <div class="stage">
+          <canvas id="preview" aria-label="Animation preview"></canvas>
+          <div class="stage-meta">
+            <span id="stage-size" class="muted"></span>
+            <button id="change" class="ghost" type="button" data-i18n="change"></button>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="field">
+            <span class="label" data-i18n="effect"></span>
+            <div id="effects" class="chips" role="radiogroup" aria-labelledby="effects-label"></div>
+          </div>
+
+          <div class="field row">
+            <button id="export" class="primary" type="button" data-i18n="export"></button>
+            <button id="shuffle" class="ghost" type="button" data-i18n="shuffle"></button>
+          </div>
+
+          <div id="progress" class="progress" hidden>
+            <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+            <span id="progress-text" class="muted"></span>
+          </div>
+
+          <div id="result" class="result" hidden>
+            <a id="download" class="primary" download="pixel-reveal.jpg" data-i18n="download"></a>
+            <dl id="diagnostics" class="diagnostics"></dl>
+          </div>
+
+          <details class="settings">
+            <summary data-i18n="settings"></summary>
+            <div class="settings-grid">
+              <label>
+                <span data-i18n="duration"></span>
+                <input id="duration" type="number" min="0.2" max="10" step="0.1" />
+              </label>
+              <label>
+                <span data-i18n="fps"></span>
+                <input id="fps" type="number" min="1" max="60" step="1" />
+              </label>
+              <label>
+                <span data-i18n="blockSize"></span>
+                <input id="blockSize" type="number" min="0" max="200" step="1" />
+              </label>
+              <label>
+                <span data-i18n="maxDimension"></span>
+                <input id="maxDimension" type="number" min="240" max="4096" step="16" />
+              </label>
+              <label>
+                <span data-i18n="seed"></span>
+                <input id="seed" type="number" min="1" max="999999" step="1" />
+              </label>
+              <label>
+                <span data-i18n="cover"></span>
+                <select id="cover">
+                  <option value="effect" data-i18n="coverEffect"></option>
+                  <option value="original" data-i18n="coverOriginal"></option>
+                </select>
+              </label>
+              <label>
+                <span data-i18n="metadata"></span>
+                <select id="profile">
+                  <option value="google" data-i18n="profileGoogle"></option>
+                  <option value="oplus" data-i18n="profileOplus"></option>
+                  <option value="none" data-i18n="profileNone"></option>
+                </select>
+              </label>
+              <label>
+                <span data-i18n="appName"></span>
+                <input id="appName" type="text" maxlength="40" />
+              </label>
+            </div>
+            <p id="profile-note" class="note muted"></p>
+          </details>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <span data-i18n="privacy"></span>
+        <span class="dot">·</span>
+        <span data-i18n="license"></span>
+      </footer>
+    </main>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

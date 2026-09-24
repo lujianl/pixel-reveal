@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+dist-demo/
+coverage/
+*.tsbuildinfo
+.vite/
+
+# local tooling / editor state
+.claude/
+.impeccable/live/
+.verify/
+.verify-*
+.vscode/*
+!.vscode/extensions.json
+
+# os / logs
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*

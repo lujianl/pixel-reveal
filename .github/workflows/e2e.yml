@@ -1,0 +1,38 @@
+name: Browser smoke test
+
+# Node cannot cover the WebCodecs path, so the encode/assemble pipeline is
+# verified in a real browser. ubuntu-latest ships Chrome, so this costs nothing
+# but a couple of minutes.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Serve the built demo
+        run: |
+          npx vite preview --config vite.demo.config.ts --port 4173 --strictPort &
+          for i in $(seq 1 40); do
+            if curl -sf http://localhost:4173/ > /dev/null; then exit 0; fi
+            sleep 0.5
+          done
+          echo "preview server never came up" >&2
+          exit 1
+
+      - name: Run the browser smoke test
+        run: npm run test:e2e -- http://localhost:4173/
